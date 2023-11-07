@@ -1,0 +1,197 @@
+openapi: 3.0.1
+info:
+  title: 'Документация для API <project_name> v1'
+  description: 'API для мобильного приложения. Внимание! Для авторизации вписывайте "Bearer eyJ0eXAiOiJKV1Q..." без Bearer работать не будет.'
+  version: '1.0.0'
+servers:
+  - url: http://project_name.local/api/v1
+    description: 'Локальный сервер'
+  - url: http://dev.project_name.ru/api/v1
+    description: 'HTTP -- Тестовый стенд'
+tags:
+  - name: Test
+    description: 'Тестовые и отладочные (debug) методы'
+paths:
+  /test:
+    get:
+      tags:
+        - Test
+      summary: 'Тестирование работоспособности API: slim, bitrix, swagger. Если метод выполнился без ошибок значит все было корректно развернуто/работает.'
+      responses:
+        '200':
+          description: 'Схема ответа об успешном выполнении операции'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessModel'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        $ref: "#/components/schemas/ResponseResultOK"
+  /test/authuser:
+    get:
+      tags:
+        - Test
+      summary: 'Тестирование работоспособности API: возвращает данные аутентифицированного пользователя, проверка работоспособности механизма авторизации.'
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: 'Схема ответа об успешном выполнении операции'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessModel'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        $ref: "#/components/schemas/ResponseTestUserOK"
+
+components:
+  securitySchemes:
+    tokenAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    productId:
+      name: id
+      in: path
+      required: true
+      description: 'Числовой идетинфикатор товара'
+      schema:
+        type: integer
+      example: 56778
+    limit:
+      name: limit
+      in: query
+      required: true
+      description: 'Количество запрашиваемых элементов'
+      schema:
+        type: integer
+      example: 20
+    offset:
+      name: offset
+      in: query
+      required: true
+      description: 'Количество пропущенных элементов'
+      schema:
+        type: integer
+      example: 0
+  responses:
+    400BadRequest:
+      description: 'Ошибки валидации запроса'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+          example: { "status": false, "data": null, "errors": [ { "type": "Bad Request", "code": 400, "message": "Сообщение об ошибке." } ] }
+    401Unauthorized:
+      description: 'Ошибки аутентификации/авторизации по токену<br>(токен не передан, неверный токен и т.п.)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+          examples:
+            undefinedToken:
+              value: { "status": false, "data": null, "errors": [ { "type": "Undefined Token", "code": 401, "message": "Идентификационный токен не передан." } ] }
+            invalidToken:
+              value: { "status": false, "data": null, "errors": [ { "type": "Invalid Token", "code": 401, "message": "Переданный токен не найден, содержит неверный формат или просрочен." } ] }
+    403Forbidden:
+      description: 'Ошибка доступа к ресурсу'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+          example: { "status": false, "data": null, "errors": [ { "type": "Forbidden", "code": 403, "message": "Не достаточно прав для совершения действия." } ] }
+    404NotFound:
+      description: 'По данному запросу ни чего не найдено.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+          example: { "status": false, "data": null, "errors": [ { "type": "Not Found", "code": 404, "message": "Ни одного элемента, соответствующего данному запросу не найдено." } ] }
+    422UnprocessableEntity:
+      description: 'Ошибки бизнес-логики<br>(пользователь заблокирован, товар не найден или недоступен, пустая корзина заказа и т.п.)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+          example: { "status": false, "data": null, "errors": [ { "type": "Unprocessable Entity", "code": 422, "message": "Пользователь заблокирован." } ] }
+  schemas:
+    SuccessModel:
+      type: object
+      description: 'Объект корректного ответа'
+      properties:
+        status:
+          description: 'Результат выполнения запроса (true)'
+          type: boolean
+          example: true
+        data:
+          description: 'Запрашиваемые данные'
+          oneOf:
+            - type: array
+            - type: object
+        errors:
+          description: 'При успешном выполнении запроса приходит пустой массив <b>[]</b>'
+          type: array
+          items:
+            type: string
+          example: [ ]
+      required:
+        - status
+        - data
+        - errors
+      additionalProperties: false
+    ErrorModel:
+      type: object
+      description: 'Объект ответа с ошибкой'
+      properties:
+        status:
+          description: 'Результат выполнения запроса (false)'
+          type: boolean
+          example: false
+        data:
+          description: 'При ошибке приходит пустой объект'
+          type: array
+          items:
+            type: object
+          example: { }
+        errors:
+          description: 'Информация об ошибке'
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                description: 'Код ошибки'
+                type: integer
+              message:
+                description: 'Описание ошибки'
+                type: string
+      required:
+        - status
+        - data
+        - errors
+      additionalProperties: false
+    ResponseResultOK:
+      description: 'Объект для обозначения успешного ответа'
+      type: object
+      properties:
+        result:
+          type: string
+          example: "ok"
+    ResponseTestUserOK:
+      description: 'Диагностический метод, возвращает текущего авторизованного (по токену) пользователя'
+      type: object
+      properties:
+        userID:
+          type: integer
+          example: 1234
+        name:
+          type: string
+          example: "Иван Иванов"

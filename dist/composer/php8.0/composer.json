@@ -1,0 +1,16 @@
+{
+    "name": "alto/bitrix-rest-api",
+    "type": "module",
+    "license": "Proprietary",
+    "authors": [
+        {
+            "name": "alto.codes"
+        }
+    ],
+    "require": {
+        "slim/slim": "^4.12",
+        "slim/psr7": "^1.6",
+        "php-di/slim-bridge": "^3.4",
+        "symfony/dotenv": "^6.0"
+    }
+}
