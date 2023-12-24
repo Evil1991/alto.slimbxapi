@@ -3,7 +3,7 @@
 namespace Alto\Slimbxapi\Core\Traits;
 
 use Bitrix\Main\UserTable;
-use Alto\Slimbxapi\ApiJwtTokensTable;
+use Alto\Slimbxapi\Models\ApiJwtTokensTable;
 use Alto\Slimbxapi\Core\JwtTokenProcessor;
 use Alto\Slimbxapi\Core\ResponseErrors;
 use Alto\Slimbxapi\Core\Dto\AuthDto;
